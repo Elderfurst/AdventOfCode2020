@@ -16,7 +16,7 @@ func main() {
 
 func readInput() []int {
 	// Open our input file
-	file, err := os.Open("Inputs/Day1.txt")
+	file, err := os.Open("Day1/Day1.txt")
 
 	if err != nil {
 		fmt.Println(err)
