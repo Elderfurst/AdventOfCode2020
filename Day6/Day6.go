@@ -10,11 +10,13 @@ import (
 func main() {
 	input := readInput()
 
-	partOne(input)
-	partTwo(input)
+	groups := buildGroups(input)
+
+	partOne(groups)
+	partTwo(groups)
 }
 
-func readInput() [][]string {
+func readInput() (records [][]string) {
 	// Open our input file
 	file, err := os.Open("Day6/Day6.txt")
 
@@ -23,8 +25,6 @@ func readInput() [][]string {
 	}
 
 	defer file.Close()
-
-	var records [][]string
 
 	scanner := bufio.NewScanner(file)
 
@@ -42,50 +42,7 @@ func readInput() [][]string {
 	return records
 }
 
-func partOne(input [][]string) {
-	groups := make([]map[string]int, 0)
-
-	currentGroup := make(map[string]int, 100)
-
-	// Loop over each line of our input
-	// Empty lines denote a change in group
-	for _, answer := range input {
-		if len(answer) == 0 {
-			groups = append(groups, currentGroup)
-
-			currentGroup = make(map[string]int, 100)
-			continue
-		}
-		// Loop over the values in each line, these represent individual 'questions'
-		for _, question := range answer {
-			_, exists := currentGroup[question]
-
-			if !exists {
-				currentGroup[question] = 1
-			} else {
-				currentGroup[question]++
-			}
-		}
-	}
-
-	// Append the last group since it doesn't happen automatically due to our input
-	groups = append(groups, currentGroup)
-
-	sumOfAnswers := 0
-
-	// Next we just need to count the number of unique questions each group answered and add them all up
-	for _, group := range groups {
-		for _, _ = range group {
-			sumOfAnswers++
-		}
-	}
-
-	fmt.Println(sumOfAnswers)
-}
-
-func partTwo(input [][]string) {
-	groups := make([]Group, 0)
-
+func buildGroups(input [][]string) (groups []Group) {
 	currentGroup := new(Group)
 	currentGroup.Answers = make(map[string]int, 0)
 
@@ -117,6 +74,23 @@ func partTwo(input [][]string) {
 	// Append the last group since it doesn't happen automatically due to our input
 	groups = append(groups, *currentGroup)
 
+	return groups
+}
+
+func partOne(groups []Group) {
+	sumOfAnswers := 0
+
+	// Next we just need to count the number of unique questions each group answered and add them all up
+	for _, group := range groups {
+		for _, _ = range group.Answers {
+			sumOfAnswers++
+		}
+	}
+
+	fmt.Println(sumOfAnswers)
+}
+
+func partTwo(groups []Group) {
 	sumOfAnswers := 0
 
 	// Next we just need to count the number of unique questions each group answered and add them all up
