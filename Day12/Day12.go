@@ -162,8 +162,6 @@ func partOne(input []Instruction) {
 }
 
 func partTwo(input []Instruction) {
-	//direction := "E"
-
 	shipHorizontal := 0
 	shipVertical := 0
 
