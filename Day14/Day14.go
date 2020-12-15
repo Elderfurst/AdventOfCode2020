@@ -87,7 +87,7 @@ func partOne(input []string) {
 		memory[memoryIndex] = strings.Join(splitBinary, "")
 	}
 
-	sum := 0
+	var sum int
 
 	// Convert all of our stored binary numbers back to integers and sum them
 	for _, memoryValue := range memory {
@@ -100,7 +100,66 @@ func partOne(input []string) {
 }
 
 func partTwo(input []string) {
+	currentMask := ""
 
+	memory := make(map[string]int64, 0)
+
+	for _, line := range input {
+		// Split on ' = ' to include the spaces surrounding the equal sign, so we don't have to trim after
+		splitLine := strings.Split(line, " = ")
+
+		command := splitLine[0]
+		value := splitLine[1]
+
+		// If we get a mask line, then just set the mask and move on
+		if command == "mask" {
+			currentMask = value
+			continue
+		}
+
+		// Pull the memory index out of the first part of the line
+		memoryIndex := getMemoryIndex(command)
+
+		// Split our current mask into an array for easy iterating
+		splitMask := strings.Split(currentMask, "")
+
+		binaryMemoryIndex := expandNumber(memoryIndex)
+
+		splitBinaryMemoryIndex := strings.Split(binaryMemoryIndex, "")
+
+		// Iterate over the current mask and adjust any values necessary
+		for i, operator := range splitMask {
+			switch operator {
+			case "0":
+				continue
+			case "1":
+				splitBinaryMemoryIndex[i] = "1"
+			case "X":
+				splitBinaryMemoryIndex[i] = "X"
+			}
+		}
+
+		duplicateAddresses := getPossibleMemoryAddresses(0, strings.Join(splitBinaryMemoryIndex, ""))
+
+		memoryAddresses := removeDuplicateAddresses(duplicateAddresses)
+
+		// Convert the second part of the line to an int
+		parsedValue, _ := strconv.ParseInt(value, 10, 64)
+
+		for _, memoryAddress := range memoryAddresses {
+			// Rejoin our binary string after adjustments for storage
+			memory[memoryAddress] = parsedValue
+		}
+	}
+
+	var sum int64
+
+	// Sum everything left in memory
+	for _, memoryValue := range memory {
+		sum += memoryValue
+	}
+
+	fmt.Println(sum)
 }
 
 func getMemoryIndex(line string) (index int) {
@@ -129,3 +188,49 @@ func contractNumber(value string) int {
 	return int(convertedValue)
 }
 
+func getPossibleMemoryAddresses(index int, memoryAddress string) (memoryAddresses []string) {
+	splitAddress := strings.Split(memoryAddress, "")
+
+	tempAddress := memoryAddress
+
+	xIndex := strings.Index(tempAddress, "X")
+
+	// If there are no more 'X's in the address, then append the current address and return
+	if xIndex < 0 {
+		memoryAddresses = append(memoryAddresses, tempAddress)
+
+		return memoryAddresses
+	}
+
+	splitTemp := strings.Split(tempAddress, "")
+
+	for i, value := range splitAddress {
+		if value == "X" {
+			splitTemp[i] = "0"
+
+			memoryAddresses = append(memoryAddresses, getPossibleMemoryAddresses(i, strings.Join(splitTemp, ""))...)
+
+			splitTemp[i] = "1"
+
+			memoryAddresses = append(memoryAddresses, getPossibleMemoryAddresses(i, strings.Join(splitTemp, ""))...)
+		}
+	}
+
+	return memoryAddresses
+}
+
+func removeDuplicateAddresses(duplicates []string) (memoryAddresses []string) {
+	keys := make(map[string]bool)
+
+	for _, address := range duplicates {
+		_, exists := keys[address]
+
+		if !exists {
+			keys[address] = true
+
+			memoryAddresses = append(memoryAddresses, address)
+		}
+	}
+
+	return memoryAddresses
+}
